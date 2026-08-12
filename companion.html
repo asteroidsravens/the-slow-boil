@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Slow Boil — Interactive Data Companion · Bohemian Swarm Ep. 3</title>
+<style>
+  :root{
+    --bg:#0e0f13; --panel:#161821; --panel2:#1c1f2a; --line:#262a38;
+    --red:#e5484d; --amber:#f5b83d; --green:#4cc38a; --blue:#5b9dd9; --purple:#9d7bd8;
+    --txt:#f2f4f8; --mut:#9aa3b2; --dim:#6b7383;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
+  .wrap{max-width:1020px;margin:0 auto;padding:0 20px}
+  a{color:var(--amber)}
+  header{padding:56px 0 30px;background:linear-gradient(180deg,#131521 0%,var(--bg) 100%);border-bottom:1px solid var(--line)}
+  .kicker{letter-spacing:.22em;font-size:12px;font-weight:700;color:var(--amber);text-transform:uppercase}
+  h1{font-size:clamp(30px,5.5vw,52px);line-height:1.08;font-weight:800;margin:14px 0 10px}
+  h1 .r{color:var(--red)} h1 .a{color:var(--amber)}
+  .sub{color:var(--mut);font-size:17px;max-width:780px}
+  .btns{margin-top:20px;display:flex;gap:12px;flex-wrap:wrap}
+  .btn{display:inline-block;padding:11px 20px;border-radius:8px;font-weight:700;text-decoration:none;font-size:15px;cursor:pointer;border:none}
+  .btn.red{background:var(--red);color:#fff}
+  .btn.ghost{border:1px solid var(--line);color:var(--txt);background:var(--panel)}
+  section{padding:44px 0;border-bottom:1px solid var(--line)}
+  .tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;padding:5px 10px;border-radius:999px;margin-bottom:14px}
+  .tag.p1{background:rgba(229,72,77,.14);color:var(--red)}
+  .tag.p2{background:rgba(245,184,61,.14);color:var(--amber)}
+  .tag.p3{background:rgba(91,157,217,.14);color:var(--blue)}
+  .tag.p4{background:rgba(76,195,138,.14);color:var(--green)}
+  h2{font-size:clamp(22px,3.4vw,32px);font-weight:800;line-height:1.15;margin-bottom:8px}
+  h2 .a{color:var(--amber)} h2 .r{color:var(--red)}
+  .lede{color:var(--mut);max-width:800px;font-size:16px}
+  .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-top:24px;align-items:start}
+  @media(max-width:840px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}
+  .card h3{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:14px}
+  figcaption,.cap{color:var(--dim);font-size:12px;margin-top:12px;line-height:1.5}
+  .insight{background:var(--panel2);border-left:4px solid var(--amber);border-radius:0 12px 12px 0;padding:14px 16px;margin-top:14px}
+  .insight b{color:var(--amber);font-size:11px;letter-spacing:.14em;text-transform:uppercase;display:block;margin-bottom:4px}
+  .insight p{font-size:14.5px}
+  .take{background:rgba(76,195,138,.08);border:1px solid rgba(76,195,138,.35);border-radius:12px;padding:14px 16px;margin-top:12px}
+  .take b{color:var(--green);font-size:11px;letter-spacing:.14em;text-transform:uppercase;display:block;margin-bottom:4px}
+  .take p{font-size:14.5px}
+  svg{width:100%;height:auto;display:block}
+  .chart-lbl{font-size:12px;fill:var(--mut);font-weight:600}
+  .chart-val{font-size:13px;fill:var(--txt);font-weight:800}
+  .axis{stroke:var(--line);stroke-width:1}
+  /* controls */
+  input[type=range]{width:100%;accent-color:var(--amber);cursor:pointer}
+  select,input[type=number]{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:9px 12px;font-size:15px;font-weight:600}
+  select:focus,input:focus{outline:1px solid var(--amber)}
+  .chipbtn{background:var(--panel2);border:1px solid var(--line);color:var(--mut);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;transition:.15s}
+  .chipbtn:hover{border-color:var(--amber);color:var(--txt)}
+  .chipbtn.on{background:rgba(245,184,61,.16);border-color:var(--amber);color:var(--amber)}
+  .chiprow{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+  .bigout{font-size:clamp(24px,4vw,40px);font-weight:800;line-height:1.15}
+  .bigout .a{color:var(--amber)} .bigout .r{color:var(--red)} .bigout .g{color:var(--green)}
+  .readout{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-top:14px;font-size:15px}
+  .readout b{color:var(--amber)}
+  /* thermometer */
+  .thermo-wrap{display:flex;gap:18px;align-items:center}
+  .frogline{font-size:14.5px;color:var(--mut);font-style:italic}
+  /* event cards */
+  .evt-detail{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-top:12px;min-height:86px}
+  .evt-detail .yr{font-weight:800;color:var(--amber);font-size:13px;letter-spacing:.06em}
+  .evt-detail .ti{font-weight:800;font-size:16px;margin:2px 0 4px}
+  .evt-detail p{font-size:14px;color:var(--mut)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--mut);margin-top:10px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px}
+  /* spend rows */
+  .spendbar{margin:8px 0}
+  .spendbar .row{display:flex;height:34px;border-radius:8px;overflow:hidden}
+  .spendbar .seg{transition:width .5s ease;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;color:#0e0f13;white-space:nowrap;overflow:hidden}
+  .spendlist{margin-top:14px}
+  .spendlist .li{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:14px}
+  .spendlist .li:last-child{border:none}
+  .spendlist .nm i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:8px}
+  .spendlist .pc{font-weight:800}
+  .delta{font-size:12px;margin-left:8px}
+  .delta.up{color:var(--red)} .delta.dn{color:var(--green)}
+  /* accordion */
+  details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0;margin:10px 0;overflow:hidden}
+  summary{cursor:pointer;padding:16px 18px;font-weight:800;font-size:15.5px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary:after{content:"+";color:var(--amber);font-size:20px;font-weight:800}
+  details[open] summary:after{content:"–"}
+  details .body{padding:0 18px 18px;color:var(--mut);font-size:14.5px}
+  details .body ul{margin:8px 0 0 18px}
+  details .body li{margin:6px 0}
+  details .body b{color:var(--txt)}
+  ul.clean{list-style:none}
+  ul.clean li{padding:9px 0;border-bottom:1px dashed var(--line);font-size:14.5px}
+  ul.clean li:last-child{border-bottom:none}
+  ul.clean li span{color:var(--mut)}
+  .band{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:30px 0 4px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 16px 12px}
+  .stat b{display:block;font-size:26px;font-weight:800}
+  .stat span{color:var(--mut);font-size:12.5px}
+  .stat small{display:block;color:var(--dim);font-size:10.5px;margin-top:6px}
+  .sources ol{margin-left:20px;color:var(--mut);font-size:13.5px}
+  .sources li{margin:6px 0}
+  footer{padding:32px 0 60px;color:var(--dim);font-size:13px}
+  .note{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 15px;font-size:13px;color:var(--mut);margin-top:14px}
+  .quote{border-left:3px solid var(--red);padding:6px 0 6px 16px;margin:16px 0;font-size:16px;font-style:italic;color:var(--txt)}
+  .quote small{display:block;color:var(--dim);font-style:normal;margin-top:4px;font-size:12px}
+  .toc{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+  .toc a{font-size:12.5px;font-weight:700;color:var(--mut);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 13px;background:var(--panel)}
+  .toc a:hover{color:var(--amber);border-color:var(--amber)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="kicker">Bohemian Swarm · Episode 3 · Interactive Data Companion</div>
+    <h1>The <span class="r">Slow Boil</span>:<br>How Your Paycheck Lost Its <span class="a">Power</span></h1>
+    <p class="sub">Tom &amp; Jess don't do vibes — they do receipts. 🧾 Explore 88 years of real government data behind Part 1 (the jobs episode) and Part 2 (the robots episode): move the sliders, flip between decades, convert dollars across time, and see exactly which <b style="color:var(--txt)">policy choices</b> turned up the heat. Based on the data in <i>The Slow Boil of the American Frog</i> by Jessica M. McDonald.</p>
+    <div class="btns">
+      <a class="btn red" href="https://youtu.be/L6wnomBNt9E" target="_blank" rel="noopener">▶ Watch Part 1 on YouTube</a>
+      <a class="btn ghost" href="#decouple">Jump to the timeline ↓</a>
+    </div>
+    <div class="toc">
+      <a href="#converter">💵 Dollar time-machine</a>
+      <a href="#house">🏠 A year of work, then &amp; now</a>
+      <a href="#spend">🧺 Where the paycheck went</a>
+      <a href="#decouple">📉 The Great Decoupling + policy timeline</a>
+      <a href="#minwage">⚖️ Minimum wage in real dollars</a>
+      <a href="#episode">🎙️ The episodes</a>
+      <a href="#blueprint">🛠️ The blueprint</a>
+    </div>
+    <div class="band">
+      <div class="stat"><b style="color:var(--red)">+318.8%</b><span>productivity growth since 1948</span><small>EPI, 1948–Q1 2026</small></div>
+      <div class="stat"><b style="color:var(--amber)">+154.9%</b><span>typical worker pay growth since 1948</span><small>EPI — the gap is the story</small></div>
+      <div class="stat"><b style="color:var(--red)">−23,000</b><span>U.S. jobs, July 2026</span><small>BLS, Aug 7 2026</small></div>
+      <div class="stat"><b style="color:var(--amber)">2.2× → ~5×</b><span>years of income to buy a home, 1950 → 2026</span><small>Census / FRED / Harvard JCHS</small></div>
+      <div class="stat"><b style="color:var(--txt)">$5T</b><span>forecast robot economy by 2050</span><small>Morgan Stanley</small></div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= DOLLAR TIME MACHINE ================= -->
+<section id="converter">
+  <div class="wrap">
+    <span class="tag p3">Interactive · Purchasing power (CPI)</span>
+    <h2>The dollar time-machine 💵</h2>
+    <p class="lede">Inflation is the silent tax on your paycheck. Pick any amount and any two years since 1913 — this converts it using the official CPI (Consumer Price Index), the government's measure of what a dollar actually buys.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>Convert money across time</h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <span style="color:var(--mut);font-weight:700">$</span>
+          <input type="number" id="cvAmt" value="90000" min="1" style="width:130px">
+          <span style="color:var(--mut)">in</span>
+          <select id="cvFrom"></select>
+          <span style="color:var(--mut)">→ buys the same as</span>
+          <select id="cvTo"></select>
+        </div>
+        <div class="readout" id="cvOut" style="margin-top:18px"></div>
+        <div class="chiprow">
+          <button class="chipbtn" onclick="preset(90000,2026,1998)">The book's $90k family: 2026 → 1998</button>
+          <button class="chipbtn" onclick="preset(7.25,2009,2026)">$7.25 min wage since 2009</button>
+          <button class="chipbtn" onclick="preset(1.60,1968,2026)">1968's $1.60 min wage</button>
+          <button class="chipbtn" onclick="preset(3319,1950,2026)">A 1950 family income</button>
+        </div>
+        <figcaption>CPI-U annual averages, BLS 1913–2025 (via Minneapolis Fed table); 2026 uses the Fed's partial-year estimate. This is purchasing-power ("real dollar") conversion, not investment return.</figcaption>
+      </div>
+      <div>
+        <div class="insight"><b>Why the show cares</b>
+          <p>The book's opening family — four jobs, <b style="color:var(--txt)">$90,000</b> a year, SNAP for groceries — earns what sounds like good money. Run it through the time machine: $90,000 today buys what roughly <b style="color:var(--txt)">$44,000</b> bought in 1998. Their income didn't fail. Its <i>power</i> was drained.</p>
+        </div>
+        <div class="take"><b>Takeaway</b>
+          <p>Never compare raw dollars across decades. "Salaries are higher than ever" and "paychecks buy less than ever" can both be true — and right now, they are.</p>
+        </div>
+        <div class="quote">"The frog in the boiling pot never leaps. The heat rises so gradually that its nervous system registers only a pleasant warming bath."<small>— The Slow Boil of the American Frog, Introduction</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HOUSE / YEAR OF WORK ================= -->
+<section id="house">
+  <div class="wrap">
+    <span class="tag p1">Interactive · Slice by decade</span>
+    <h2>A year of work, then and now 🏠</h2>
+    <p class="lede">Drag through the decades. For each stop: the typical income, the median price of a new home, and the number that matters — <b>how many years of income the house costs</b>. Grandpa wasn't richer than you. His house was cheaper than yours.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>Drag the decade slider</h3>
+        <input type="range" id="hsSlider" min="0" max="8" step="1" value="0">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-top:4px">
+          <span>1950</span><span>1960</span><span>1970</span><span>1980</span><span>1990</span><span>2000</span><span>2010</span><span>2020</span><span>2026</span>
+        </div>
+        <div id="hsOut" style="margin-top:18px"></div>
+        <div id="hsBars" style="margin-top:8px"></div>
+        <figcaption id="hsCap"></figcaption>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Hours of work to buy it</h3>
+          <p style="font-size:13.5px;color:var(--mut);margin-bottom:10px">At the average production worker's wage:</p>
+          <ul class="clean">
+            <li><b>🎓 A year of public college tuition</b><br><span>1964: <b style="color:var(--green)">~97 hours</b> ($243 at $2.50/hr) · 2026: <b style="color:var(--red)">~369 hours</b> ($11,950 at $32.40/hr) — <b style="color:var(--txt)">3.8× more work</b></span></li>
+            <li><b>⛽ A gallon of gas, on minimum wage</b><br><span>1950: <b style="color:var(--green)">~22 min</b> ($0.27 at $0.75/hr) · 2026: <b style="color:var(--red)">~34 min</b> ($4.08 at $7.25/hr)</span></li>
+            <li><b>🏠 The median new home</b><br><span>1950: <b style="color:var(--green)">~2.2 years</b> of family income · 2026: <b style="color:var(--red)">~4.9 years</b> (new homes) — Harvard JCHS puts all homes at <b style="color:var(--txt)">~5.1×</b></span></li>
+          </ul>
+          <figcaption>NCES (tuition 1963-64), College Board 2025-26, FRED AHETPI (wages), EIA-republished 1950 gas + AAA Aug 2026, DOL minimum wage history, Census/FRED housing.</figcaption>
+        </div>
+        <div class="take" style="margin-top:14px"><b>Takeaway</b>
+          <p>The middle-class squeeze isn't a feeling — it's arithmetic. The big-ticket items that build a life (home, education) inflated far faster than wages; only the small stuff stayed cheap.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SPENDING SHARES ================= -->
+<section id="spend">
+  <div class="wrap">
+    <span class="tag p3">Interactive · 123 years of budgets</span>
+    <h2>Where the paycheck went 🧺</h2>
+    <p class="lede">The Bureau of Labor Statistics has surveyed American household budgets since 1901. Tap an era to see how the typical family's spending shifted — food's share collapsed, housing's share climbed, and a new giant appeared: insurance, pensions and "everything else" needed to stay afloat.</p>
+    <div class="card">
+      <h3>Pick an era</h3>
+      <div class="chiprow" id="spendChips"></div>
+      <div class="spendbar"><div class="row" id="spendRow"></div></div>
+      <div class="spendlist" id="spendList"></div>
+      <figcaption id="spendCap"></figcaption>
+    </div>
+    <div class="grid" style="margin-top:18px">
+      <div class="insight"><b>How to read it</b>
+        <p>In 1901, <b style="color:var(--txt)">42.5¢ of every dollar</b> went to food — feeding a family was the economy. By 2024 food is under 13¢, but <b style="color:var(--txt)">housing (33.4%)</b>, transportation (17%) and healthcare (7.9%) took its place, and "other" — dominated by personal insurance &amp; pensions — nearly quadrupled since 1950. Cheaper calories, pricier <i>life</i>.</p>
+      </div>
+      <div class="take"><b>Takeaway</b>
+        <p>Progress showed up in the grocery cart, not the mortgage. The categories that grew are exactly the ones you can't skip — shelter, transport to work, health, and hedging against disaster. That's what "squeezed" means, in data.</p>
+      </div>
+    </div>
+    <div class="note">Survey methods differ slightly across eras (1901–1950: BLS Report 991; 1960–73: share of current consumption; 1984→: modern Consumer Expenditure Survey incl. pensions/insurance). Direction and scale of the shifts are robust; treat single-point decimals loosely.</div>
+  </div>
+</section>
+
+<!-- ================= DECOUPLING + POLICY TIMELINE ================= -->
+<section id="decouple">
+  <div class="wrap">
+    <span class="tag p1">Interactive · The spine of the story</span>
+    <h2>The Great Decoupling — and the <span class="a">policy choices</span> pegged to it 📉</h2>
+    <p class="lede">For 25 years after WWII, productivity and worker pay rose in lockstep: the economy grew, your paycheck grew. Around <b>1973 the lines split</b> — and never rejoined. Scrub the timeline to watch the gap open, and tap the markers to see which laws and decisions were signed at each turn. <i>"That divergence is the spine of this book, and it was not an accident."</i></p>
+
+    <div class="card">
+      <h3>Productivity vs. typical worker pay, indexed 1948 = 100 (EPI)</h3>
+      <div class="chiprow" id="evtFilters"></div>
+      <div id="dcChart"></div>
+      <input type="range" id="dcSlider" min="1948" max="2026" step="1" value="1973" aria-label="Year scrubber">
+      <div class="evt-detail" id="evtDetail"></div>
+      <div class="legend">
+        <span><i style="background:var(--blue)"></i>Productivity (output per hour)</span>
+        <span><i style="background:var(--amber)"></i>Typical worker hourly pay (incl. benefits, inflation-adjusted)</span>
+        <span><i style="background:var(--red)"></i>The gap</span>
+      </div>
+      <figcaption>Economic Policy Institute, "The Productivity–Pay Gap" (through Q1 2026): productivity +318.8% vs pay +154.9% since 1948; since 1979 productivity grew 2.8× as much as pay. Lines drawn from EPI's published index anchors (1948, 1973, 1979, 2026); years between anchors are interpolated for display. Pay = production &amp; nonsupervisory workers (~80% of the workforce).</figcaption>
+    </div>
+
+    <div class="grid" style="margin-top:18px">
+      <div class="card thermo-wrap">
+        <svg id="thermo" viewBox="0 0 90 210" style="width:74px;flex:none" aria-label="Water temperature metaphor gauge"></svg>
+        <div>
+          <h3 style="margin-bottom:6px">The water temperature 🐸</h3>
+          <div class="bigout" id="thermoVal"></div>
+          <p class="frogline" id="frogLine"></p>
+          <figcaption>A metaphor gauge, not a statistic: the "temperature" tracks the productivity–pay gap at the year you've scrubbed to. 1948 = comfortable bath. 2026 = …check the frog.</figcaption>
+        </div>
+      </div>
+      <div>
+        <div class="insight"><b>How to read it</b>
+          <p>If pay had kept tracking productivity after 1973, the typical worker's paycheck would carry roughly <b style="color:var(--txt)">60%+ more purchasing power</b> today. Economists debate each cause's weight — technology, trade, union decline, policy — but the book's receipts show every inflection sits next to a signature: Taft-Hartley 1947, the 1971 gold decision, PATCO 1981, NAFTA 1994, China's WTO entry 2001, the 2008 bailout design.</p>
+        </div>
+        <div class="take"><b>Takeaway</b>
+          <p><i>"It was not inevitable. It was not the market. It was chosen."</i> — and what was chosen can be chosen differently. That's Part 2's question, and the blueprint below.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MINIMUM WAGE ================= -->
+<section id="minwage">
+  <div class="wrap">
+    <span class="tag p1">Interactive · Nominal vs real</span>
+    <h2>The minimum wage: same number, shrinking money ⚖️</h2>
+    <p class="lede">The federal minimum wage has been <b>$7.25 since 2009</b> — the longest freeze since it was created in 1938. Toggle between the number on the paycheck (nominal) and what it actually buys (real, in 2025 dollars). The peak wasn't recent. It was <b>1968</b>.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>Federal minimum wage, 1938–2026</h3>
+        <div class="chiprow">
+          <button class="chipbtn on" id="mwNomBtn" onclick="mwToggle('nom')">💵 Nominal (on the paycheck)</button>
+          <button class="chipbtn on" id="mwRealBtn" onclick="mwToggle('real')">🛒 Real (2025 buying power)</button>
+        </div>
+        <div id="mwChart"></div>
+        <figcaption>DOL Wage &amp; Hour Division history (1938 Act rates); real values computed with BLS CPI-U annual averages, expressed in 2025 dollars. 1968's $1.60 ≈ <b>$14.80</b> today; today's $7.25 has lost ~33% of its buying power just since 2009.</figcaption>
+      </div>
+      <div>
+        <div class="insight"><b>The policy peg</b>
+          <p>Every cliff on the real line is Congress <i>doing nothing</i> while inflation worked. The book's sharpest counterfactual: had the minimum wage tracked productivity since 1968, it would be roughly <b style="color:var(--txt)">$26/hour</b> — about $54,000/year full-time (EPI-based calculation).</p>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <h3>Union membership — the other line that fell</h3>
+          <div id="unChart"></div>
+          <figcaption>~1 in 3 workers in the mid-1950s → 1 in 10 today (peak: CRS/Troy series; 1983 &amp; 2025: BLS Union Members release). The book: post-PATCO union decline costs workers ~$180B/yr in today's dollars (EPI 2023).</figcaption>
+        </div>
+        <div class="take"><b>Takeaway</b>
+          <p>The wage floor and worker bargaining power eroded together — not by accident, but by dated, signed decisions. Check the timeline markers above: 1947, 1959, 1981, 2011, 2018.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= THE EPISODES ================= -->
+<section id="episode">
+  <div class="wrap">
+    <span class="tag p1">Part 1 · The Jobs Number Nobody Wanted</span>
+    <h2>July 2026: the month the water got visible 🎙️</h2>
+    <p class="lede">Part 1 opens on one number: payrolls <b>fell 23,000</b> in July when forecasters expected +83,000 — and revisions quietly erased another <b>103,000</b> jobs from May and June. Labor-force participation hit <b>61.4%</b>, its lowest since 2021: ~264,000 people didn't become "unemployed," they stopped raising their hand.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>Monthly job growth — first reported vs revised</h3>
+        <svg viewBox="0 0 460 240" role="img" aria-label="May 129k revised to 63k, June 57k to 20k, July minus 23k vs plus 83k expected">
+          <line x1="40" y1="170" x2="440" y2="170" class="axis"/>
+          <rect x="60" y="66" width="34" height="104" fill="#3a3f52"/><rect x="100" y="119" width="34" height="51" fill="var(--blue)"/>
+          <text x="60" y="58" class="chart-val" fill="#8890a5">+129k</text><text x="100" y="111" class="chart-val">+63k</text>
+          <text x="78" y="192" class="chart-lbl" text-anchor="middle">May</text>
+          <rect x="180" y="124" width="34" height="46" fill="#3a3f52"/><rect x="220" y="154" width="34" height="16" fill="var(--blue)"/>
+          <text x="176" y="116" class="chart-val" fill="#8890a5">+57k</text><text x="220" y="146" class="chart-val">+20k</text>
+          <text x="198" y="192" class="chart-lbl" text-anchor="middle">June</text>
+          <rect x="316" y="103" width="34" height="67" fill="#2c3140" opacity=".55"/><rect x="356" y="170" width="34" height="19" fill="var(--red)"/>
+          <text x="306" y="95" class="chart-val" fill="#8890a5">+83k expected</text><text x="352" y="212" class="chart-val" fill="var(--red)">−23k actual</text>
+          <text x="352" y="232" class="chart-lbl">July</text>
+          <rect x="60" y="14" width="12" height="12" fill="#3a3f52"/><text x="78" y="25" class="chart-lbl">First reported / expected</text>
+          <rect x="250" y="14" width="12" height="12" fill="var(--blue)"/><text x="268" y="25" class="chart-lbl">Revised / actual</text>
+        </svg>
+        <figcaption>BLS Employment Situation, July 2026 (Aug 7, 2026); consensus via CNBC/Dow Jones. 12-month average job growth after revisions: ~34,000/month.</figcaption>
+      </div>
+      <div>
+        <div class="insight"><b>The AI thread</b>
+          <p>The coders built the AI agents; the agents took their jobs. Stanford payroll-data research: employment for developers aged 22–25 fell <b style="color:var(--txt)">~20%</b> from its late-2022 peak while 30+ workers in the same high-AI-exposure roles <i>grew</i> 6–12%. AI isn't deleting the career — it's deleting the first rung of the ladder.</p>
+        </div>
+        <div class="insight"><b>Part 2 · When the Models Break 🤖</b>
+          <p>The money is already moving to what replaces the workers: Morgan Stanley models a <b style="color:var(--txt)">$5 trillion</b> humanoid-robot market by 2050 (1B+ units; robot cost $200k → $50k). Tesla claims a <b style="color:var(--txt)">1,000,000-robot/year</b> factory — while actually-shipping humanoids today are mostly Chinese (Unitree ~5,500/yr, from $16k). Announcements ≠ shipments; watch who owns the stack.</p>
+        </div>
+        <div class="take"><b>Takeaway</b>
+          <p>Part 1: where the jobs went. Part 2: who owns what replaces them. The 88-year data above is why the show insists this time be answered with <i>policy</i>, not vibes.</p>
+        </div>
+        <div class="btns"><a class="btn red" href="https://youtu.be/L6wnomBNt9E" target="_blank" rel="noopener">▶ Watch Part 1 (12:44)</a><span class="btn ghost">Part 2 drops this week 🔔</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BLUEPRINT ================= -->
+<section id="blueprint">
+  <div class="wrap">
+    <span class="tag p4">The escape plan · from the book</span>
+    <h2>If policy turned the heat up, policy can turn it down 🛠️</h2>
+    <p class="lede">The book's final chapters lay out a three-tier blueprint — every item already proven somewhere in the world or already used by a past U.S. administration. <i>"The blueprint is not missing. The political will to implement it is what has been missing."</i></p>
+
+    <details open>
+      <summary>🏙️ Tier 1 — What cities &amp; states can do right now</summary>
+      <div class="body"><ul>
+        <li><b>Raise wage floors:</b> 8 states &amp; 52 cities are already above $15 (San Francisco: $18.67). California's $20 fast-food minimum raised earnings ~11% with no widespread job loss (UC Berkeley IRLE).</li>
+        <li><b>"Just cause" firing laws:</b> NYC's fast-food law cut terminations 22% and arbitrary discipline 31% in year one.</li>
+        <li><b>Paid family &amp; medical leave</b> (California model — costs under 1% of payroll) and <b>fair-chance hiring</b>.</li>
+        <li><b>Zoning reform:</b> Minneapolis ended single-family-only zoning in 2018 — construction rose, rent growth moderated.</li>
+      </ul></div>
+    </details>
+    <details>
+      <summary>🏛️ Tier 2 — Federal action that needs no new law</summary>
+      <div class="body"><ul>
+        <li><b>Classify gig workers properly</b> (NLRB rulemaking — ~25M workers currently earn 20–30% less than comparable employees).</li>
+        <li><b>Use the $600B federal procurement lever:</b> prevailing wages, paid leave, and union neutrality for contractors (precedents: 2014, 2021 executive orders).</li>
+        <li><b>Ban non-competes</b> (FTC 2024 rule: ~30M workers, ~$524/yr each in suppressed wages).</li>
+        <li><b>Transparency mandates:</b> pay-gap reporting, algorithmic-decision disclosure, a public zip-code-level economic-equity dashboard — "disease surveillance" for economic wellbeing.</li>
+      </ul></div>
+    </details>
+    <details>
+      <summary>🗳️ Tier 3 — The legislative horizon</summary>
+      <div class="body"><ul>
+        <li><b>Index the minimum wage</b> to inflation and productivity — ending the freeze-by-neglect cycle visible in the chart above.</li>
+        <li><b>The PRO Act</b> (federal right to organize), universal paid leave, universal childcare (every $1 in early childhood returns $2–$13 — Heckman).</li>
+        <li><b>A "New GI Bill" for the AI transition:</b> Singapore-style universal learning accounts (~$2,000/adult/yr); trained workers there saw 23% less displacement and 31% higher wage growth. Denmark spends 2% of GDP on active labor policy; the U.S. spends 0.1%.</li>
+        <li><b>Share the machine gains:</b> a 32-hour week phased over 5 years (Iceland, 2,500 workers: output maintained; global 61-company trial: 95% kept it), automation taxes into a National Skills Trust, and worker equity in the AI their data trains (Mondragon: 81,000 worker-owners, 6:1 pay cap, ~3% unemployment through the 2008 crisis vs Spain's 25%).</li>
+      </ul></div>
+    </details>
+    <details>
+      <summary>🧪 The evidence people don't expect</summary>
+      <div class="body"><ul>
+        <li><b>Cash floors don't stop work:</b> Stockton's $500/month experiment — full-time employment <i>rose</i> 28%→40%; the "people will stop working" prediction has been tested 20+ times since 1601 and missed every time.</li>
+        <li><b>The scale check:</b> a full pro-labor AI package models at ~$280B/yr (Urban Institute-style modeling) — roughly the cost of the 2017 corporate tax cut — for +18% median income vs baseline by 2035 and 30% less poverty.</li>
+        <li><b>The receipt of receipts:</b> ~$34 trillion shifted from the bottom 90% to the top 10% since 1989 (Fed data via Saez &amp; Zucman). That's the bill. It was itemized above, one policy at a time.</li>
+      </ul></div>
+    </details>
+
+    <div class="quote">"The water is still heating. But we know the temperature now. And we know how to turn down the flame."<small>— The Slow Boil of the American Frog, Conclusion</small></div>
+  </div>
+</section>
+
+<!-- ================= SOURCES ================= -->
+<section class="sources" id="sources">
+  <div class="wrap">
+    <h2>Sources &amp; data notes</h2>
+    <ol>
+      <li><a href="https://www.bls.gov/news.release/empsit.nr0.htm" target="_blank" rel="noopener">BLS Employment Situation, July 2026</a> — −23k payrolls; −103k revisions; 4.1% unemployment; 61.4% participation · <a href="https://www.cnbc.com/2026/08/07/jobs-report-july-2026.html" target="_blank" rel="noopener">CNBC coverage</a></li>
+      <li><a href="https://www.minneapolisfed.org/about-us/monetary-policy/inflation-calculator/consumer-price-index-1913-" target="_blank" rel="noopener">CPI-U annual averages 1913–2026 (BLS, via Minneapolis Fed)</a> — powers the dollar time-machine and all "real dollar" lines</li>
+      <li><a href="https://fred.stlouisfed.org/series/MSPUS" target="_blank" rel="noopener">FRED MSPUS — median sales price, new houses (Census/HUD), 1963–2026</a> · 1950/1960 home values: <a href="https://census.gov/data/tables/time-series/dec/coh-values.html" target="_blank" rel="noopener">Census Historical Housing</a></li>
+      <li><a href="https://fred.stlouisfed.org/series/MEHOINUSA646N" target="_blank" rel="noopener">FRED MEHOINUSA646N — median household income 1984–2024</a> · 1950–1980 median <i>family</i> income: Census P-60 (via NCES) · <a href="https://www.jchs.harvard.edu/blog/home-prices-surge-five-times-median-income-nearing-historic-highs" target="_blank" rel="noopener">Harvard JCHS price-to-income ~5×</a></li>
+      <li><a href="https://www.dol.gov/agencies/whd/minimum-wage/history/chart" target="_blank" rel="noopener">DOL — federal minimum wage history 1938–2009</a></li>
+      <li><a href="https://www.bls.gov/opub/100-years-of-u-s-consumer-spending.pdf" target="_blank" rel="noopener">BLS Report 991 — 100 Years of U.S. Consumer Spending</a> (1901, 1934–36, 1950) · <a href="https://www.bls.gov/opub/mlr/1999/09/atissue.pdf" target="_blank" rel="noopener">BLS MLR 1999</a> (1960–61, 1972–73) · <a href="https://www.bls.gov/news.release/cesan.nr0.htm" target="_blank" rel="noopener">BLS Consumer Expenditures 2024</a></li>
+      <li><a href="https://www.epi.org/productivity-pay-gap/" target="_blank" rel="noopener">EPI — The Productivity–Pay Gap</a> (productivity +318.8% vs pay +154.9%, 1948–Q1 2026; 2.8× since 1979)</li>
+      <li>Union density: <a href="https://www.bls.gov/news.release/union2.nr0.htm" target="_blank" rel="noopener">BLS Union Members 2025</a> (10.0%) · 1983: BLS (20.1%) · 1945/1954 peaks: CRS RL32553</li>
+      <li>"What work bought": <a href="https://nces.ed.gov/programs/digest/" target="_blank" rel="noopener">NCES</a> (1963-64 tuition $243) · College Board Trends 2025 ($11,950) · <a href="https://fred.stlouisfed.org/series/AHETPI" target="_blank" rel="noopener">FRED AHETPI</a> ($2.50 in 1964 → $32.40 July 2026) · AAA gas $4.08 (Aug 2026); 1950 gas $0.27 (EIA-republished)</li>
+      <li>AI &amp; robots: <a href="https://www.morganstanley.com/insights/articles/humanoid-robot-market-5-trillion-by-2050" target="_blank" rel="noopener">Morgan Stanley $5T/2050</a> · <a href="https://finance.yahoo.com/news/tesla-build-1-million-optimus-200624497.html" target="_blank" rel="noopener">Tesla 1M robots/yr claim</a> · <a href="https://electrek.co/2026/01/28/musk-admits-no-optimus-robots-are-doing-useful-work-at-tesla-after-claiming-otherwise/" target="_blank" rel="noopener">Electrek reality-check</a> · <a href="https://restofworld.org/2026/china-humanoid-robots-unitree-agibot-tesla-optimus/" target="_blank" rel="noopener">Rest of World: China shipments</a> · <a href="https://www.finalroundai.com/blog/stanford-study-shows-young-software-developers-losing-jobs-to-ai" target="_blank" rel="noopener">Stanford Digital Economy Lab findings</a></li>
+      <li>Policy history, era arguments, quotes, counterfactuals and the blueprint: <i>The Slow Boil of the American Frog — How Eight Decades of Policy Choices Eroded the American Middle Class</i>, Jessica M. McDonald (2026), and sources cited therein (EPI, Pew, Oxfam, CRS, Autor–Dorn–Hanson, Card &amp; Krueger, Heckman, UC Berkeley IRLE, Urban Institute, GIIN).</li>
+    </ol>
+    <div class="note">Honesty notes: the decoupling chart interpolates between EPI's published anchor years; the "water temperature" is a metaphor gauge; spending-survey methods differ across eras; 2026 CPI is a partial-year estimate; MSPUS covers <i>new</i> homes (all-homes basis runs ~5.1×); the 1950 car price (~$1,510) circulates widely but lacks an official source, so we left it out of the math. Forecasts (Morgan Stanley, Tesla) are projections and claims, not facts.</div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><b style="color:var(--txt)">Bohemian Swarm</b> — receipts, not vibes. 🧾🐸</p>
+    <p style="margin-top:6px">Interactive companion for Episode 3, Parts 1 &amp; 2 · Data as of August 12, 2026 · <a href="https://youtu.be/L6wnomBNt9E" target="_blank" rel="noopener">Watch Part 1</a> · Part 2 drops this week — subscribe so the algorithm doesn't lay <i>us</i> off too.</p>
+  </div>
+</footer>
+
+<script>
+/* ================= DATA (verified — see Sources) ================= */
+const CPI={1913:9.9,1914:10.0,1915:10.1,1916:10.9,1917:12.8,1918:15.0,1919:17.3,1920:20.0,1921:17.9,1922:16.8,1923:17.1,1924:17.1,1925:17.5,1926:17.7,1927:17.4,1928:17.2,1929:17.2,1930:16.7,1931:15.2,1932:13.6,1933:12.9,1934:13.4,1935:13.7,1936:13.9,1937:14.4,1938:14.1,1939:13.9,1940:14.0,1941:14.7,1942:16.3,1943:17.3,1944:17.6,1945:18.0,1946:19.5,1947:22.3,1948:24.0,1949:23.8,1950:24.1,1951:26.0,1952:26.6,1953:26.8,1954:26.9,1955:26.8,1956:27.2,1957:28.1,1958:28.9,1959:29.2,1960:29.6,1961:29.9,1962:30.3,1963:30.6,1964:31.0,1965:31.5,1966:32.5,1967:33.4,1968:34.8,1969:36.7,1970:38.8,1971:40.5,1972:41.8,1973:44.4,1974:49.3,1975:53.8,1976:56.9,1977:60.6,1978:65.2,1979:72.6,1980:82.4,1981:90.9,1982:96.5,1983:99.6,1984:103.9,1985:107.6,1986:109.6,1987:113.6,1988:118.3,1989:124.0,1990:130.7,1991:136.2,1992:140.3,1993:144.5,1994:148.2,1995:152.4,1996:156.9,1997:160.5,1998:163.0,1999:166.6,2000:172.2,2001:177.1,2002:179.9,2003:184.0,2004:188.9,2005:195.3,2006:201.6,2007:207.3,2008:215.3,2009:214.5,2010:218.1,2011:224.9,2012:229.6,2013:233.0,2014:236.7,2015:237.0,2016:240.0,2017:245.1,2018:251.1,2019:255.7,2020:258.8,2021:271.0,2022:292.7,2023:304.7,2024:313.7,2025:321.9,2026:334.4};
+
+/* decade explorer: [year, income, incomeLabel, house, houseLabel] */
+const HOUSE=[
+ [1950,3319,"median family income (Census)",7354,"median home value (Census)"],
+ [1960,5620,"median family income (Census)",11900,"median home value (Census)"],
+ [1970,9867,"median family income (Census)",23500,"median new-home price (FRED MSPUS)"],
+ [1980,21023,"median family income (Census)",64800,"median new-home price (FRED MSPUS)"],
+ [1990,29940,"median household income (Census/FRED)",122300,"median new-home price (FRED MSPUS)"],
+ [2000,41990,"median household income (Census/FRED)",167600,"median new-home price (FRED MSPUS)"],
+ [2010,49280,"median household income (Census/FRED)",222700,"median new-home price (FRED MSPUS)"],
+ [2020,68010,"median household income (Census/FRED)",328200,"median new-home price (FRED MSPUS)"],
+ [2026,83730,"median household income (2024, latest — Census/FRED)",409600,"median new-home price (FRED MSPUS, H1 2026)"]
+];
+const HOUSE_ERA={1950:"Post-war promise: FLSA floor + GI Bill + ~1-in-3 union jobs",1960:"Peak lockstep: pay still tracking productivity",1970:"1971: gold window closes; 1973: the Great Decoupling begins",1980:"Volcker shock · ERTA tax cuts · PATCO firing",1990:"Union density 16% and falling · NAFTA signed 1993",2000:"China enters WTO 2001 · the China Shock (~2.4M jobs)",2010:"Post-2008: banks made whole, households wait 15 years",2020:"COVID: 22M jobs lost in 12 weeks; billionaires +$3.9T",2026:"The AI inflection: −23k payrolls; participation 61.4%"};
+
+/* spending shares */
+const SPEND_KEYS=["food","housing","apparel","transportation","healthcare","entertainment","other"];
+const SPEND_COLORS={food:"#4cc38a",housing:"#e5484d",apparel:"#9d7bd8",transportation:"#5b9dd9",healthcare:"#f5b83d",entertainment:"#d97fb0",other:"#8890a5"};
+const SPEND_NAMES={food:"Food",housing:"Housing",apparel:"Clothing",transportation:"Transportation",healthcare:"Healthcare",entertainment:"Entertainment",other:"Other (insurance, pensions, everything else)"};
+const SPEND={
+ "1901":{food:42.5,housing:23.3,apparel:14.0,transportation:0,healthcare:5.2,entertainment:1.6,other:13.4,cap:"BLS Report 991, Table 5. Transportation wasn't yet reported separately (folded into 'other') — most people walked."},
+ "1934–36":{food:33.6,housing:32.0,apparel:10.6,transportation:8.3,healthcare:3.9,entertainment:5.4,other:6.2,cap:"BLS Report 991, Table 11 — Depression-era budgets."},
+ "1950":{food:29.7,housing:27.2,apparel:11.5,transportation:13.4,healthcare:5.2,entertainment:4.4,other:8.6,cap:"BLS Report 991, Table 14 — the car enters the budget."},
+ "1960–61":{food:24.4,housing:29.0,apparel:10.3,transportation:15.2,healthcare:6.7,entertainment:4.0,other:10.4,cap:"BLS Monthly Labor Review (1999), current-consumption basis."},
+ "1972–73":{food:21.2,housing:31.4,apparel:8.2,transportation:22.0,healthcare:5.4,entertainment:4.7,other:7.0,cap:"BLS MLR (1999) — peak car-dependence; the decoupling begins."},
+ "1984–85":{food:14.9,housing:30.3,apparel:6.0,transportation:19.6,healthcare:4.7,entertainment:4.9,other:19.6,cap:"Computed from BLS Consumer Expenditure means (now includes pensions/insurance in 'other')."},
+ "2002–03":{food:13.1,housing:32.8,apparel:4.2,transportation:19.1,healthcare:5.8,entertainment:5.1,other:19.9,cap:"Computed from BLS CE means; food share matches BLS TED exactly."},
+ "2024":{food:12.9,housing:33.4,apparel:2.5,transportation:17.0,healthcare:7.9,entertainment:4.6,other:21.7,cap:"BLS Consumer Expenditures 2024 (avg household spent $78,535)."}
+};
+
+/* EPI decoupling anchors, index 1948=100 */
+const DC_ANCHORS=[[1948,100,100],[1973,195.7,190.9],[1979,216.8,190.6],[2026,418.8,254.9]];
+
+/* policy events (book: The Slow Boil of the American Frog) */
+const EVENTS=[
+ {y:1938,c:"labor",t:"Fair Labor Standards Act",d:"FDR's floor under work: 25¢ minimum wage, the 40-hour week, child labor banned — but farm & domestic workers (disproportionately Black and Latina) were carved out."},
+ {y:1944,c:"labor",t:"GI Bill",d:"Tuition and home loans built the postwar middle class — administered state-by-state, so millions of Black veterans were shut out of its ladder."},
+ {y:1947,c:"labor",t:"Taft-Hartley Act",d:"Banned closed shops and green-lit state 'right-to-work' laws — the first crack in union power, passed over Truman's veto."},
+ {y:1966,c:"labor",t:"The tip credit",d:"Restaurant-lobby carve-out lets employers pay tipped workers a subminimum base — turning tips from bonus into survival income."},
+ {y:1968,c:"money",t:"Minimum wage peaks",d:"$1.60/hour — about $14.80 in today's money. The federal floor has never been worth as much since."},
+ {y:1971,c:"money",t:"Gold window closes + Powell Memo",d:"Nixon ends dollar-gold convertibility, unleashing financialization; the Powell Memo mobilizes corporate America against labor. The book: 'the most consequential year for workers since 1935.'"},
+ {y:1973,c:"money",t:"The Great Decoupling",d:"Productivity keeps climbing; typical pay flatlines. The lines never rejoin. 'That divergence is the spine of this book, and it was not an accident.'"},
+ {y:1978,c:"trade",t:"Airline deregulation",d:"Fare wars begin; pilot and mechanic pay falls 20–30% within a decade — the deregulation template."},
+ {y:1981,c:"labor",t:"PATCO + ERTA",d:"Reagan fires 11,000 striking air-traffic controllers — 'the public execution of collective bargaining' — while the top tax rate starts its fall from 70% toward 28%."},
+ {y:1982,c:"finance",t:"Garn–St. Germain Act",d:"Savings-and-loan deregulation → 1,000+ institutions collapse, $132B taxpayer bill. A dress rehearsal."},
+ {y:1994,c:"trade",t:"NAFTA takes effect",d:"Promised 200,000 jobs/year; delivered 850,000+ lost manufacturing jobs within nine years, with ~$6,000 of retraining aid per displaced worker."},
+ {y:1999,c:"finance",t:"Glass-Steagall repealed",d:"Gramm-Leach-Bliley demolishes the Depression-era firewall between banking and speculation. The road to 2008 opens."},
+ {y:2001,c:"trade",t:"China joins the WTO",d:"The 'China Shock': ~2.4 million U.S. jobs (Autor, Dorn & Hanson) — concentrated, personal, permanent losses; diffuse gains."},
+ {y:2008,c:"finance",t:"Crisis & the bailout design",d:"$16 trillion in household wealth erased; 10M foreclosures. Banks were made whole in years; median household wealth took 15 to recover."},
+ {y:2009,c:"money",t:"Last minimum-wage increase",d:"$7.25 — and frozen ever since: the longest stretch without a raise since 1938. Inflation has eaten ~a third of it."},
+ {y:2011,c:"labor",t:"Act 10 & austerity",d:"Wisconsin guts public-sector bargaining (membership −50% in places); sequestration cuts hit exactly when recovery needed fuel."},
+ {y:2018,c:"labor",t:"Federal-union executive orders",d:"Collective bargaining narrowed for 1M+ federal workers; membership drops 20–30% in affected agencies."},
+ {y:2020,c:"finance",t:"COVID — the Great Revealer",d:"22 million jobs gone in 12 weeks; billionaire wealth +$3.9 trillion in a year. 'Essential' workers got $2/hr hazard pay — for 5 months."},
+ {y:2026,c:"ai",t:"The AI inflection",d:"July payrolls −23,000; participation lowest since 2021; entry-level coding jobs −20% from peak; a $5T robot economy forecast. The episodes you're watching."}
+];
+const EVT_CATS={labor:["Labor power","#4cc38a"],money:["Money & taxes","#f5b83d"],trade:["Trade","#5b9dd9"],finance:["Finance & crises","#e5484d"],ai:["AI era","#9d7bd8"]};
+let evtOn={labor:true,money:true,trade:true,finance:true,ai:true};
+
+/* ================= HELPERS ================= */
+const $=id=>document.getElementById(id);
+const fmt$=n=>"$"+Math.round(n).toLocaleString("en-US");
+const fmt$2=n=>"$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+
+/* ================= 1. CONVERTER ================= */
+(function(){
+  const years=Object.keys(CPI).map(Number);
+  for(const sel of [$("cvFrom"),$("cvTo")]){
+    years.forEach(y=>{const o=document.createElement("option");o.value=y;o.textContent=y;sel.appendChild(o);});
+  }
+  $("cvFrom").value=2026;$("cvTo").value=1998;
+  ["cvAmt","cvFrom","cvTo"].forEach(id=>$(id).addEventListener("input",calc));
+  window.preset=(a,f,t)=>{$("cvAmt").value=a;$("cvFrom").value=f;$("cvTo").value=t;calc();};
+  function calc(){
+    const a=parseFloat($("cvAmt").value)||0, f=+$("cvFrom").value, t=+$("cvTo").value;
+    const out=a*CPI[t]/CPI[f];
+    const inv=a*CPI[f]/CPI[t];
+    const disp=out<100?fmt$2(out):fmt$(out);
+    const dispInv=inv<100?fmt$2(inv):fmt$(inv);
+    const dispA=a<100?fmt$2(a):fmt$(a);
+    $("cvOut").innerHTML=`<div class="bigout"><span class="a">${dispA}</span> in ${f} ≈ <span class="${out<a?"r":"g"}">${disp}</span> in ${t}</div>
+    <p style="color:var(--mut);font-size:14px;margin-top:8px">Flip side: to match ${t}'s ${dispA} lifestyle, you'd need <b style="color:var(--txt)">${dispInv}</b> in ${f}.${f===2026||t===2026?" <i>(2026 CPI is a partial-year estimate.)</i>":""}</p>`;
+  }
+  calc();
+})();
+
+/* ================= 2. HOUSE / DECADE ================= */
+(function(){
+  const sl=$("hsSlider");
+  function render(){
+    const [y,inc,incL,hp,hpL]=HOUSE[+sl.value];
+    const ratio=hp/inc;
+    const maxR=5.2;
+    $("hsOut").innerHTML=`<div class="bigout">${y}: a home = <span class="${ratio>3.5?"r":ratio>2.5?"a":"g"}">${ratio.toFixed(1)} years</span> of income</div>
+      <p style="color:var(--mut);font-size:14px;margin:6px 0 2px">Income <b style="color:var(--txt)">${fmt$(inc)}</b> · Home <b style="color:var(--txt)">${fmt$(hp)}</b></p>
+      <p style="color:var(--dim);font-size:12.5px">📌 Policy era: ${HOUSE_ERA[y]}</p>`;
+    let bars="";
+    HOUSE.forEach((row,i)=>{
+      const r=row[3]/row[1];
+      const w=(r/maxR*100).toFixed(1);
+      const col=i===+sl.value?(r>3.5?"var(--red)":r>2.5?"var(--amber)":"var(--green)"):"#3a3f52";
+      bars+=`<div style="display:flex;align-items:center;gap:8px;margin:3px 0">
+        <span style="width:38px;font-size:11px;color:var(--dim);text-align:right">${row[0]}</span>
+        <div style="flex:1;background:var(--panel2);border-radius:4px;height:14px"><div style="width:${w}%;height:14px;border-radius:4px;background:${col};transition:.3s"></div></div>
+        <span style="width:34px;font-size:11.5px;font-weight:700;color:${i===+sl.value?"var(--txt)":"var(--dim)"}">${r.toFixed(1)}×</span></div>`;
+    });
+    $("hsBars").innerHTML=bars;
+    $("hsCap").textContent=`${y}: ${incL}; ${hpL}. Note the income series switches from family (1950–80) to household (1990→) — both Census; the squeeze is visible on either basis. Existing-home basis puts 2026 near 5.1× (Harvard JCHS).`;
+  }
+  sl.addEventListener("input",render);render();
+})();
+
+/* ================= 3. SPENDING ================= */
+(function(){
+  const keys=Object.keys(SPEND);let cur="1950";
+  const chips=$("spendChips");
+  keys.forEach(k=>{const b=document.createElement("button");b.className="chipbtn"+(k===cur?" on":"");b.textContent=k;b.onclick=()=>{cur=k;[...chips.children].forEach(c=>c.classList.toggle("on",c.textContent===k));render();};chips.appendChild(b);});
+  function render(){
+    const d=SPEND[cur];const base=SPEND["1901"];
+    let row="";let list="";
+    SPEND_KEYS.forEach(k=>{
+      const v=d[k];if(v>0)row+=`<div class="seg" style="width:${v}%;background:${SPEND_COLORS[k]}" title="${SPEND_NAMES[k]}: ${v}%">${v>=8?SPEND_NAMES[k].split(" ")[0]+" "+v+"%":""}</div>`;
+      const dv=base[k]>0?v-base[k]:null;
+      list+=`<div class="li"><span class="nm"><i style="background:${SPEND_COLORS[k]}"></i>${SPEND_NAMES[k]}</span>
+        <span class="pc">${v}%${dv!==null&&cur!=="1901"?`<span class="delta ${dv>0?"up":"dn"}">${dv>0?"▲":"▼"} ${Math.abs(dv).toFixed(1)} vs 1901</span>`:""}</span></div>`;
+    });
+    $("spendRow").innerHTML=row;
+    $("spendList").innerHTML=list;
+    $("spendCap").textContent="Share of average household spending, "+cur+". "+d.cap;
+  }
+  render();
+})();
+
+/* ================= 4. DECOUPLING ================= */
+function dcVal(year){ // interpolate between anchors
+  const a=DC_ANCHORS;
+  for(let i=0;i<a.length-1;i++){
+    if(year>=a[i][0]&&year<=a[i+1][0]){
+      const f=(year-a[i][0])/(a[i+1][0]-a[i][0]);
+      return [a[i][1]+f*(a[i+1][1]-a[i][1]), a[i][2]+f*(a[i+1][2]-a[i][2])];
+    }
+  }
+  return [a[a.length-1][1],a[a.length-1][2]];
+}
+(function(){
+  const W=920,H=340,PL=46,PR=16,PT=18,PB=54;
+  const x=y=>PL+(y-1948)/(2026-1948)*(W-PL-PR);
+  const yv=v=>PT+(430-v)/(430-90)*(H-PT-PB);
+  const filt=$("evtFilters");
+  Object.entries(EVT_CATS).forEach(([k,[nm,col]])=>{
+    const b=document.createElement("button");b.className="chipbtn on";b.innerHTML=`<i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${col};margin-right:6px"></i>${nm}`;
+    b.onclick=()=>{evtOn[k]=!evtOn[k];b.classList.toggle("on",evtOn[k]);draw();};
+    filt.appendChild(b);
+  });
+  let selEvt=EVENTS.find(e=>e.y===1973);
+  function draw(){
+    const yr=+$("dcSlider").value;
+    let prodPts="",payPts="";
+    for(let y0=1948;y0<=2026;y0+=1){const [p,w]=dcVal(y0);prodPts+=`${x(y0)},${yv(p)} `;payPts+=`${x(y0)},${yv(w)} `;}
+    const [pC,wC]=dcVal(yr);
+    let evtDots="";
+    EVENTS.filter(e=>evtOn[e.c]).forEach(e=>{
+      const col=EVT_CATS[e.c][1];const sel=selEvt&&selEvt.y===e.y&&selEvt.t===e.t;
+      evtDots+=`<g style="cursor:pointer" onclick="selEvent(${e.y},'${e.t.replace(/'/g,"\\'")}')">
+        <line x1="${x(e.y)}" y1="${PT}" x2="${x(e.y)}" y2="${H-PB}" stroke="${col}" stroke-width="${sel?2:1}" opacity="${sel?0.85:0.28}" stroke-dasharray="${sel?"none":"3 4"}"/>
+        <circle cx="${x(e.y)}" cy="${H-PB+12}" r="${sel?7:5}" fill="${col}" opacity="${sel?1:0.85}"/>
+        ${sel?`<circle cx="${x(e.y)}" cy="${H-PB+12}" r="10" fill="none" stroke="${col}"/>`:""}</g>`;
+    });
+    const gap=pC-wC;
+    $("dcChart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Productivity vs pay indexed to 100 in 1948, with policy event markers">
+      ${[100,200,300,400].map(g=>`<line x1="${PL}" y1="${yv(g)}" x2="${W-PR}" y2="${yv(g)}" class="axis" opacity=".6"/><text x="${PL-8}" y="${yv(g)+4}" class="chart-lbl" text-anchor="end">${g}</text>`).join("")}
+      ${[1950,1960,1970,1980,1990,2000,2010,2020].map(t=>`<text x="${x(t)}" y="${H-PB+34}" class="chart-lbl" text-anchor="middle">${t}</text>`).join("")}
+      <line x1="${x(yr)}" y1="${PT}" x2="${x(yr)}" y2="${H-PB}" stroke="#f2f4f8" stroke-width="1.5" opacity=".9"/>
+      <rect x="${Math.min(x(yr)+6,W-190)}" y="${PT+2}" width="178" height="66" rx="8" fill="#1c1f2a" stroke="#262a38"/>
+      <text x="${Math.min(x(yr)+16,W-180)}" y="${PT+22}" class="chart-val" fill="#f2f4f8">${yr}</text>
+      <text x="${Math.min(x(yr)+16,W-180)}" y="${PT+40}" class="chart-lbl" fill="#5b9dd9">Productivity: ${pC.toFixed(0)}</text>
+      <text x="${Math.min(x(yr)+16,W-180)}" y="${PT+56}" class="chart-lbl" fill="#f5b83d">Pay: ${wC.toFixed(0)}  <tspan fill="#e5484d">gap: ${gap.toFixed(0)} pts</tspan></text>
+      <polyline points="${prodPts}" fill="none" stroke="var(--blue)" stroke-width="3" stroke-linejoin="round"/>
+      <polyline points="${payPts}" fill="none" stroke="var(--amber)" stroke-width="3" stroke-linejoin="round"/>
+      <circle cx="${x(yr)}" cy="${yv(pC)}" r="5" fill="var(--blue)" stroke="#0e0f13" stroke-width="2"/>
+      <circle cx="${x(yr)}" cy="${yv(wC)}" r="5" fill="var(--amber)" stroke="#0e0f13" stroke-width="2"/>
+      ${evtDots}
+    </svg>`;
+    renderEvt();renderThermo(gap,yr);
+  }
+  window.selEvent=(y,t)=>{selEvt=EVENTS.find(e=>e.y===y&&e.t===t);$("dcSlider").value=y;draw();};
+  function renderEvt(){
+    if(!selEvt){$("evtDetail").innerHTML="<p style='color:var(--dim)'>Tap a marker on the timeline to see the policy choice made that year.</p>";return;}
+    const [nm,col]=EVT_CATS[selEvt.c];
+    $("evtDetail").innerHTML=`<span class="yr" style="color:${col}">${selEvt.y} · ${nm.toUpperCase()}</span><div class="ti">${selEvt.t}</div><p>${selEvt.d}</p>`;
+  }
+  function renderThermo(gap,yr){
+    const frac=Math.max(0,Math.min(1,gap/164));
+    const temp=Math.round(72+frac*(212-72));
+    const fillH=150*frac;
+    const col=frac<0.25?"#4cc38a":frac<0.6?"#f5b83d":"#e5484d";
+    $("thermo").innerHTML=`
+      <rect x="34" y="12" width="22" height="158" rx="11" fill="#1c1f2a" stroke="#262a38"/>
+      <rect x="38" y="${166-fillH}" width="14" height="${fillH}" rx="7" fill="${col}" style="transition:.3s"/>
+      <circle cx="45" cy="182" r="20" fill="${col}"/>
+      <text x="45" y="188" text-anchor="middle" font-size="13" font-weight="800" fill="#0e0f13">${temp}°</text>`;
+    $("thermoVal").innerHTML=`${yr}: <span style="color:${col}">${temp}°F</span>`;
+    $("frogLine").textContent=frac<0.1?"“A pleasant warming bath.” The frog relaxes.":frac<0.35?"The frog stretches. Feels like progress in here.":frac<0.6?"The frog frowns. Something is off, but the water rose so slowly…":frac<0.85?"“You were delivered here by design.” The frog checks the receipts.":"The frog is awake. The question is whether it leaps.";
+  }
+  $("dcSlider").addEventListener("input",()=>{selEvt=null;draw();});
+  draw();
+})();
+
+/* ================= 5. MIN WAGE ================= */
+const MW=[[1938,0.25],[1939,0.30],[1945,0.40],[1950,0.75],[1956,1.00],[1961,1.15],[1963,1.25],[1967,1.40],[1968,1.60],[1974,2.00],[1975,2.10],[1976,2.30],[1978,2.65],[1979,2.90],[1980,3.10],[1981,3.35],[1990,3.80],[1991,4.25],[1996,4.75],[1997,5.15],[2007,5.85],[2008,6.55],[2009,7.25]];
+let mwShow={nom:true,real:true};
+function mwNominal(year){let v=0.25;for(const [y,r] of MW){if(y<=year)v=r;else break;}return v;}
+function mwToggle(k){mwShow[k]=!mwShow[k];$("mwNomBtn").classList.toggle("on",mwShow.nom);$("mwRealBtn").classList.toggle("on",mwShow.real);drawMW();}
+function drawMW(){
+  const W=560,H=300,PL=44,PR=14,PT=14,PB=40,MAX=16;
+  const x=y=>PL+(y-1938)/(2026-1938)*(W-PL-PR);
+  const yv=v=>PT+(MAX-v)/MAX*(H-PT-PB);
+  let nomP="",realP="";
+  for(let y0=1938;y0<=2026;y0++){
+    const n=mwNominal(y0);const r=n*CPI[2025]/CPI[y0];
+    nomP+=`${x(y0)},${yv(n)} `;realP+=`${x(y0)},${yv(Math.min(r,MAX))} `;
+  }
+  const peakR=1.60*CPI[2025]/CPI[1968];
+  $("mwChart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Minimum wage nominal and real 1938 to 2026">
+    ${[4,8,12,16].map(g=>`<line x1="${PL}" y1="${yv(g)}" x2="${W-PR}" y2="${yv(g)}" class="axis" opacity=".6"/><text x="${PL-8}" y="${yv(g)+4}" class="chart-lbl" text-anchor="end">$${g}</text>`).join("")}
+    ${[1940,1960,1980,2000,2020].map(t=>`<text x="${x(t)}" y="${H-PB+22}" class="chart-lbl" text-anchor="middle">${t}</text>`).join("")}
+    ${mwShow.real?`<polyline points="${realP}" fill="none" stroke="var(--green)" stroke-width="3" stroke-linejoin="round"/>
+      <circle cx="${x(1968)}" cy="${yv(peakR)}" r="5" fill="var(--green)" stroke="#0e0f13" stroke-width="2"/>
+      <text x="${x(1968)}" y="${yv(peakR)-10}" class="chart-val" text-anchor="middle" fill="var(--green)">1968 peak: $${peakR.toFixed(2)}</text>`:""}
+    ${mwShow.nom?`<polyline points="${nomP}" fill="none" stroke="var(--amber)" stroke-width="3" stroke-linejoin="round"/>`:""}
+    <circle cx="${x(2026)}" cy="${yv(7.25)}" r="5" fill="var(--red)" stroke="#0e0f13" stroke-width="2"/>
+    <text x="${x(2026)-8}" y="${yv(7.25)+22}" class="chart-val" text-anchor="end" fill="var(--red)">$7.25 — frozen since 2009</text>
+    <text x="${PL+6}" y="${PT+14}" class="chart-lbl"><tspan fill="var(--amber)">— nominal</tspan>  <tspan fill="var(--green)">— real (2025$)</tspan></text>
+  </svg>`;
+}
+drawMW();
+
+/* ================= 6. UNION ================= */
+(function(){
+  const pts=[[1945,35.4],[1954,34.8],[1983,20.1],[2025,10.0]];
+  const W=460,H=200,PL=40,PR=40,PT=16,PB=34;
+  const x=y=>PL+(y-1945)/(2025-1945)*(W-PL-PR);
+  const yv=v=>PT+(38-v)/38*(H-PT-PB);
+  let line="";pts.forEach(p=>line+=`${x(p[0])},${yv(p[1])} `);
+  $("unChart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Union membership 35% in 1954 to 10% in 2025">
+    ${[10,20,30].map(g=>`<line x1="${PL}" y1="${yv(g)}" x2="${W-PR}" y2="${yv(g)}" class="axis" opacity=".6"/><text x="${PL-6}" y="${yv(g)+4}" class="chart-lbl" text-anchor="end">${g}%</text>`).join("")}
+    <polyline points="${line}" fill="none" stroke="var(--purple)" stroke-width="3" stroke-linejoin="round"/>
+    ${pts.map(p=>`<circle cx="${x(p[0])}" cy="${yv(p[1])}" r="5" fill="var(--purple)" stroke="#0e0f13" stroke-width="2"/><text x="${x(p[0])}" y="${yv(p[1])-10}" class="chart-val" text-anchor="middle">${p[1]}%</text><text x="${x(p[0])}" y="${H-PB+20}" class="chart-lbl" text-anchor="middle">${p[0]}</text>`).join("")}
+    <line x1="${x(1981)}" y1="${PT}" x2="${x(1981)}" y2="${H-PB}" stroke="var(--red)" stroke-width="1" stroke-dasharray="3 4" opacity=".7"/>
+    <text x="${x(1981)+5}" y="${PT+12}" class="chart-lbl" fill="var(--red)">PATCO '81</text>
+  </svg>`;
+})();
+</script>
+</body>
+</html>
